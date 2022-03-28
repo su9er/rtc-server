@@ -5,16 +5,16 @@ class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, length: 20 })
   username: string;
 
-  @Column()
+  @Column({ length: 60 })
   password: string;
 
   @Column()
   avatar: string;
 
-  @Column()
+  @Column({ default: false })
   is_admin: boolean;
 }
 

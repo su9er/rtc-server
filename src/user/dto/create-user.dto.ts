@@ -6,7 +6,7 @@ export class CreateUserDto {
   @IsString()
   readonly password: string;
   @IsString()
-  readonly avatar: string;
+  readonly avatar?: string;
   @IsBoolean()
-  readonly is_admin: boolean;
+  readonly is_admin?: boolean;
 }
