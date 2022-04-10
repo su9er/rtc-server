@@ -9,12 +9,12 @@ export class UserService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
 
-  async findAll(): Promise<User[]> {
+  async getAllUsers(): Promise<User[]> {
     const users = await this.userRepository.find();
     return users;
   }
 
-  async findOne(id: string) {
+  async getUserById(id: string) {
     const user = await this.userRepository.findOne({
       where: { id },
     });
@@ -29,7 +29,7 @@ export class UserService {
     return user;
   }
 
-  async findOneByUsername(username: string) {
+  async getUserByUsername(username: string) {
     const user = await this.userRepository.findOne({ where: { username } });
 
     if (user) {
@@ -51,7 +51,7 @@ export class UserService {
   }
 
   async update(id: string, createUserDto: CreateUserDto) {
-    const user = await this.findOne(id);
+    const user = await this.getUserById(id);
     await this.userRepository.update(id, createUserDto);
     return user;
   }
