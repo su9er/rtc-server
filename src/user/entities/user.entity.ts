@@ -15,6 +15,10 @@ class User {
 
   @Column({ nullable: true })
   avatar: string;
+
+  @Column({ nullable: true })
+  @Exclude()
+  currenthashedRefreshToken?: string;
 }
 
 export default User;

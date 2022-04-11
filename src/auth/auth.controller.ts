@@ -7,6 +7,9 @@ import {
   Post,
   Req,
   UseGuards,
+  ClassSerializerInterceptor,
+  UseInterceptors,
+  Get,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
@@ -14,8 +17,10 @@ import { LoginDto } from './dto/login.dto';
 import { LocalAuthGuard } from './guard/local-auth.guard';
 import RequestWithUser from './interface/request-with-user.interface';
 import { SignupDto } from './dto/signup.dto';
+import { JwtRefreshTokenGuard } from './guard/jwt-refresh-token.guard';
 
 @Controller('auth')
+@UseInterceptors(ClassSerializerInterceptor)
 @ApiTags('auth')
 export class AuthController {
   constructor(
@@ -37,8 +42,16 @@ export class AuthController {
   @ApiBody({ type: LoginDto })
   async login(@Req() request: RequestWithUser) {
     const { user } = request;
-    const cookie = this.authService.getCookieWithJwtToken(user.id);
-    request.res.setHeader('Set-Cookie', cookie);
+    const accessTokenCookie = this.authService.getCookieWithJwtToken(user.id);
+    const { cookie: refreshTokenCookie, token: refreshToken } =
+      this.authService.getCookieWithJwtRefreshToken(user.id);
+
+    await this.userService.setUserRefreshToken(refreshToken, user.id);
+
+    request.res.setHeader('Set-Cookie', [
+      accessTokenCookie,
+      refreshTokenCookie,
+    ]);
     return user;
   }
 
@@ -46,6 +59,16 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(@Req() request: RequestWithUser) {
+    await this.userService.removeUserRefreshToken(request.user.id);
     request.res.setHeader('Set-Cookie', this.authService.getCookiesForLogout());
+  }
+
+  @UseGuards(JwtRefreshTokenGuard)
+  @Get('refresh')
+  refresh(@Req() request: RequestWithUser) {
+    const { user } = request;
+    const accessTokenCookie = this.authService.getCookieWithJwtToken(user.id);
+    request.res.setHeader('Set-Cookie', accessTokenCookie);
+    return user;
   }
 }
